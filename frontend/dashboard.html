@@ -21,7 +21,11 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2 class="logo-small">BridgeGap</h2>
+                <!-- Added logo image next to BridgeGap text -->
+                <div class="logo-container">
+                    <img src="/placeholder.svg?height=32&width=32" alt="BridgeGap Logo" class="logo-image">
+                    <h2 class="logo-small">BridgeGap</h2>
+                </div>
                 <button class="menu-close" id="menuClose">✕</button>
             </div>
             <nav class="sidebar-nav">
@@ -33,6 +37,11 @@
                     <span class="nav-icon">💬</span>
                     <span class="nav-text">Чати</span>
                 </a>
+                <a href="#achievements" class="nav-item" data-page="achievements">
+                    <span class="nav-icon">🏆</span>
+                    <span class="nav-text">Досягнення</span>
+                </a>
+
                 <a href="#interactive" class="nav-item" data-page="interactive">
                     <span class="nav-icon">🎮</span>
                     <span class="nav-text">Інтерактив</span>
@@ -96,6 +105,94 @@
                 </div>
             </section>
 
+            <!-- Achievements Page -->
+            <section class="page" id="page-achievements" data-page="achievements">
+                <header class="page-header">
+                    <h1>Досягнення</h1>
+                </header>
+                <div class="page-content">
+                    <div class="achievements-container">
+                        <h2>Ваші досягнення 🏆</h2>
+                        <p class="achievements-subtitle">
+                            Тут зберігатимуться ваші нагороди, значки та успіхи, отримані на платформі BridgeGap.
+                        </p>
+
+                        <div class="achievements-list" id="achievementsList">
+                            <div class="achievement-card" style="animation-delay: 0.1s">
+                                <div class="achievement-icon">🎯</div>
+                                <div class="achievement-info">
+                                    <h3>Перші кроки</h3>
+                                    <p>Завершіть реєстрацію та створіть профіль</p>
+                                    <div class="achievement-progress">
+                                        <div class="achievement-progress-bar" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                                <div class="achievement-badge earned">✓</div>
+                            </div>
+
+                            <div class="achievement-card" style="animation-delay: 0.2s">
+                                <div class="achievement-icon">💬</div>
+                                <div class="achievement-info">
+                                    <h3>Початок діалогу</h3>
+                                    <p>Надішліть перше повідомлення у чаті</p>
+                                    <div class="achievement-progress">
+                                        <div class="achievement-progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="achievement-badge locked">🔒</div>
+                            </div>
+
+                            <div class="achievement-card" style="animation-delay: 0.3s">
+                                <div class="achievement-icon">🤝</div>
+                                <div class="achievement-info">
+                                    <h3>Новий друг</h3>
+                                    <p>Знайдіть свого першого друга на платформі</p>
+                                    <div class="achievement-progress">
+                                        <div class="achievement-progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="achievement-badge locked">🔒</div>
+                            </div>
+
+                            <div class="achievement-card" style="animation-delay: 0.4s">
+                                <div class="achievement-icon">🎮</div>
+                                <div class="achievement-info">
+                                    <h3>Ігроман</h3>
+                                    <p>Зіграйте у 5 інтерактивних ігор</p>
+                                    <div class="achievement-progress">
+                                        <div class="achievement-progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="achievement-badge locked">🔒</div>
+                            </div>
+
+                            <div class="achievement-card" style="animation-delay: 0.5s">
+                                <div class="achievement-icon">⭐</div>
+                                <div class="achievement-info">
+                                    <h3>Активіст</h3>
+                                    <p>Будьте активними 7 днів поспіль</p>
+                                    <div class="achievement-progress">
+                                        <div class="achievement-progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="achievement-badge locked">🔒</div>
+                            </div>
+
+                            <div class="achievement-card" style="animation-delay: 0.6s">
+                                <div class="achievement-icon">🌉</div>
+                                <div class="achievement-info">
+                                    <h3>Будівник мостів</h3>
+                                    <p>Проведіть 10 успішних розмов між поколіннями</p>
+                                    <div class="achievement-progress">
+                                        <div class="achievement-progress-bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="achievement-badge locked">🔒</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <!-- Interactive Page -->
             <section class="page" id="page-interactive" data-page="interactive">
@@ -133,8 +230,8 @@
                                 <h2 id="profileName">Завантаження...</h2>
                                 <p id="profileEmail">-</p>
                                 <!-- Automatic generation display based on birthdate -->
-                                <p id="profileGeneration">-</p>
                                 <p id="profileAge">-</p>
+                                <p id="profileBio" class="profile-bio">-</p>
                             </div>
                         </div>
                         <button id="editProfileBtn" class="btn-primary">Редагувати профіль</button>
@@ -156,6 +253,13 @@
                             <div class="form-group">
                                 <label for="editDateOfBirth">Дата народження</label>
                                 <input type="date" id="editDateOfBirth" name="dateOfBirth" required>
+                            </div>
+                            <!-- Added bio textarea field -->
+                            <div class="form-group">
+                                <label for="editBio">Опис профілю</label>
+                                <textarea id="editBio" name="bio" placeholder="Розкажіть про себе..." rows="4"
+                                    maxlength="500"></textarea>
+                                <small class="char-count"><span id="bioCharCount">0</span>/500 символів</small>
                             </div>
                             <div class="button-group">
                                 <button type="submit" class="btn-primary">Зберегти</button>

@@ -84,20 +84,21 @@ function updateProfileDisplay() {
     console.error("Error calculating age:", e)
   }
 
-  const generation = calculateGenerationFromDate(currentUser.dateOfBirth)
-
   const firstName = currentUser.firstName || "Ім'я"
   const lastName = currentUser.lastName || "Прізвище"
   const email = currentUser.email || "емейл"
+  const bio = currentUser.bio || "Немає опису профілю"
 
   document.getElementById("profileName").textContent = `${firstName} ${lastName}`
   document.getElementById("profileEmail").textContent = email
-  document.getElementById("profileGeneration").textContent = `Покоління: ${generation}`
   document.getElementById("profileAge").textContent = `Вік: ${age} років`
+  document.getElementById("profileBio").textContent = bio
 
   document.getElementById("editFirstName").value = firstName
   document.getElementById("editLastName").value = lastName
   document.getElementById("editDateOfBirth").value = currentUser.dateOfBirth || ""
+  document.getElementById("editBio").value = currentUser.bio || ""
+  updateBioCharCount()
 
   const avatarData = localStorage.getItem(`avatar_${currentUser.id}`)
   if (avatarData) {
@@ -154,6 +155,7 @@ updateProfileForm?.addEventListener("submit", async (e) => {
     firstName: document.getElementById("editFirstName").value,
     lastName: document.getElementById("editLastName").value,
     dateOfBirth: document.getElementById("editDateOfBirth").value,
+    bio: document.getElementById("editBio").value,
   }
 
   try {
@@ -175,6 +177,7 @@ updateProfileForm?.addEventListener("submit", async (e) => {
     currentUser.firstName = formData.firstName
     currentUser.lastName = formData.lastName
     currentUser.dateOfBirth = formData.dateOfBirth
+    currentUser.bio = formData.bio
 
     localStorage.setItem("currentUser", JSON.stringify(currentUser))
     updateProfileDisplay()
@@ -245,3 +248,14 @@ logoutBtn?.addEventListener("click", () => {
 // Initialize
 showPage("home")
 initializeUserData()
+
+const editBioField = document.getElementById("editBio")
+const bioCharCountSpan = document.getElementById("bioCharCount")
+
+function updateBioCharCount() {
+  if (editBioField && bioCharCountSpan) {
+    bioCharCountSpan.textContent = editBioField.value.length
+  }
+}
+
+editBioField?.addEventListener("input", updateBioCharCount)
