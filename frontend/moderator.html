@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BridgeGap - Панель модератора</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Hamburger Menu for Mobile -->
+        <!-- Added hamburger menu button (3 white lines) for mobile sidebar -->
+        <button class="hamburger-menu" id="hamburgerMenu" aria-label="Меню">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2 class="logo-small">BridgeGap</h2>
+                <button class="menu-close" id="menuClose">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#notifications" class="nav-item active" data-page="notifications">
+                    <span class="nav-icon">🔔</span>
+                    <span class="nav-text">Сповіщення</span>
+                </a>
+                <a href="#users" class="nav-item" data-page="users">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Користувачі</span>
+                </a>
+                <a href="#reports" class="nav-item" data-page="reports">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">Скарги (в розробці)</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn-secondary btn-block">Вийти</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-dashboard">
+            <!-- Notifications Page -->
+            <section class="page" id="page-notifications" data-page="notifications">
+                <header class="page-header">
+                    <h1>Сповіщення</h1>
+                    <p>Нові користувачі та подієї</p>
+                </header>
+                <div class="page-content">
+                    <div id="notificationsList" class="notifications-list">
+                        <p class="empty-state">Сповіщень немає</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Page -->
+            <section class="page" id="page-users" data-page="users">
+                <header class="page-header">
+                    <h1>Користувачі</h1>
+                    <p>Управління користувачами платформи</p>
+                </header>
+                <div class="page-content">
+                    <div id="usersList" class="users-list">
+                        <p class="empty-state">Користувачей не знайдено</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Page -->
+            <section class="page" id="page-reports" data-page="reports">
+                <header class="page-header">
+                    <h1>Скарги</h1>
+                </header>
+                <div class="page-content">
+                    <div class="in-development">
+                        <h2>Функція в розробці 🔧</h2>
+                        <p>Система скарг знаходиться у стадії розробки. Повертайтесь скоро!</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- User Detail Modal -->
+        <div class="modal hidden" id="userDetailModal">
+            <div class="modal-content user-detail-modal">
+                <button class="modal-close" id="closeUserModal">✕</button>
+                <div id="userDetailContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/moderator.js"></script>
+</body>
+
+</html>
