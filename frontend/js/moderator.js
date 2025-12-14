@@ -101,8 +101,38 @@ async function loadAllUsers() {
     }
 
     usersList.innerHTML = users
-      .map(
-        (user) => `
+      .map((user) => {
+        // Build interests HTML
+        let interestsHTML = ""
+        if (user.interests && user.interests.length > 0) {
+          interestsHTML = '<div class="user-interests-preview">'
+          interestsHTML += "<strong>Інтереси:</strong> "
+          interestsHTML += '<div class="interests-tags-small">'
+          user.interests.forEach((interest) => {
+            interestsHTML += `<span class="interest-tag-small">${interest}</span>`
+          })
+          interestsHTML += "</div>"
+          interestsHTML += "</div>"
+        }
+
+        if (user.custom_interests && user.custom_interests.trim()) {
+          if (!interestsHTML) {
+            interestsHTML = '<div class="user-interests-preview"><strong>Інтереси:</strong> '
+          }
+          interestsHTML += `<div class="custom-interests-preview">${user.custom_interests}</div>`
+          if (
+            interestsHTML.includes('<div class="user-interests-preview">') &&
+            !interestsHTML.endsWith("</div></div>")
+          ) {
+            interestsHTML += "</div>"
+          }
+        }
+
+        if (interestsHTML && !interestsHTML.endsWith("</div>")) {
+          interestsHTML += "</div>"
+        }
+
+        return `
       <div class="user-item">
         <div class="user-header">
           <h4>${user.first_name || "Ім'я"} ${user.last_name || "Прізвище"}</h4>
@@ -110,10 +140,11 @@ async function loadAllUsers() {
         </div>
         <p class="user-email">${user.email || "емейл"}</p>
         <p class="user-registered">Зареєстрований: ${new Date(user.created_at).toLocaleDateString("uk-UA")}</p>
+        ${interestsHTML}
         <button class="btn-primary" onclick="viewUserProfile(${user.id})">Переглянути профіль</button>
       </div>
-    `,
-      )
+    `
+      })
       .join("")
   } catch (error) {
     console.error("Error loading users:", error)
@@ -137,6 +168,11 @@ async function markAsRead(notificationId) {
 async function viewUserProfile(userId) {
   try {
     const response = await fetch(`/api/moderator/user/${userId}`)
+
+    if (!response.ok) {
+      throw new Error("Не вдалося завантажити профіль")
+    }
+
     const user = await response.json()
 
     let age = "невідомо"
@@ -151,6 +187,32 @@ async function viewUserProfile(userId) {
 
     const userTypeText = user.user_type === "senior" ? "Старше 60 років" : "13-60 років"
 
+    const interestsResponse = await fetch(`/api/user/${userId}/interests`)
+    const interestsData = await interestsResponse.json()
+
+    let interestsHTML = '<div class="user-interests-section"><h3>Інтереси користувача</h3>'
+
+    if (interestsData.interests && interestsData.interests.length > 0) {
+      interestsHTML += '<div class="interests-tags">'
+      interestsData.interests.forEach((interest) => {
+        interestsHTML += `<span class="interest-tag">${interest}</span>`
+      })
+      interestsHTML += "</div>"
+    }
+
+    if (interestsData.custom_interests && interestsData.custom_interests.trim()) {
+      interestsHTML += `<div class="custom-interests"><strong>Інші інтереси:</strong> ${interestsData.custom_interests}</div>`
+    }
+
+    if (
+      (!interestsData.interests || interestsData.interests.length === 0) &&
+      (!interestsData.custom_interests || !interestsData.custom_interests.trim())
+    ) {
+      interestsHTML += '<p class="empty-state">Інтереси не обрані</p>'
+    }
+
+    interestsHTML += "</div>"
+
     const userDetailModal = document.getElementById("userDetailModal")
     const userDetailContent = document.getElementById("userDetailContent")
 
@@ -161,7 +223,9 @@ async function viewUserProfile(userId) {
         <p><strong>Тип користувача:</strong> ${userTypeText}</p>
         <p><strong>Вік:</strong> ${age} років</p>
         <p><strong>Дата реєстрації:</strong> ${new Date(user.created_at).toLocaleString("uk-UA")}</p>
+        ${user.bio && user.bio.trim() ? `<p><strong>Опис:</strong> ${user.bio}</p>` : ""}
       </div>
+      ${interestsHTML}
     `
 
     userDetailModal.classList.add("active")

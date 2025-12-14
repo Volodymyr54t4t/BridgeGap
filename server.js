@@ -36,6 +36,8 @@ async function initializeDatabase() {
         password VARCHAR(255) NOT NULL,
         date_of_birth DATE NOT NULL,
         user_type VARCHAR(20) NOT NULL DEFAULT 'young',
+        bio TEXT,
+        custom_interests TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -64,6 +66,47 @@ async function initializeDatabase() {
       )
     `)
 
+    // Interests table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS interests (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // User_interests junction table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_interests (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        interest_id INTEGER REFERENCES interests(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, interest_id)
+      )
+    `)
+
+    // Insert default interests
+    const defaultInterests = [
+      "Традиції",
+      "Історія",
+      "Література",
+      "Театр",
+      "Кіно",
+      "Ремесло",
+      "Живопис",
+      "Фотографія",
+      "Музика, пісні",
+      "Танці",
+      "Родинна пам'ять",
+      "Регіональні особливості",
+      "Мова",
+    ]
+
+    for (const interest of defaultInterests) {
+      await pool.query("INSERT INTO interests (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", [interest])
+    }
+
     console.log("Database initialized successfully")
   } catch (err) {
     console.error("Error initializing database:", err)
@@ -77,7 +120,7 @@ initializeDatabase()
 // Register User
 app.post("/api/register", async (req, res) => {
   try {
-    const { firstName, lastName, email, password, dateOfBirth } = req.body
+    const { firstName, lastName, email, password, dateOfBirth, interests, customInterests } = req.body
 
     // Validation
     if (!firstName || !lastName || !email || !password || !dateOfBirth) {
@@ -101,19 +144,29 @@ app.post("/api/register", async (req, res) => {
 
     // Create user
     const result = await pool.query(
-      "INSERT INTO users (first_name, last_name, email, password, date_of_birth, user_type) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, first_name, last_name, email, user_type",
-      [firstName, lastName, email, hashedPassword, dateOfBirth, userType],
+      "INSERT INTO users (first_name, last_name, email, password, date_of_birth, user_type, custom_interests) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, first_name, last_name, email, user_type",
+      [firstName, lastName, email, hashedPassword, dateOfBirth, userType, customInterests || null],
     )
 
     const newUser = result.rows[0]
 
-    // Notify moderators about new user
+    // Save user interests
+    if (interests && interests.length > 0) {
+      for (const interestId of interests) {
+        await pool.query("INSERT INTO user_interests (user_id, interest_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", [
+          newUser.id,
+          interestId,
+        ])
+      }
+    }
+
+    // Notify moderators
     const moderators = await pool.query("SELECT id FROM moderators")
     for (const mod of moderators.rows) {
       await pool.query("INSERT INTO notifications (moderator_id, new_user_id, message) VALUES ($1, $2, $3)", [
         mod.id,
         newUser.id,
-        `New ${userType} user registered: ${firstName} ${lastName}`,
+        `Новий користувач ${userType === "senior" ? "старшого" : "молодого"} покоління: ${firstName} ${lastName}`,
       ])
     }
 
@@ -158,6 +211,7 @@ app.post("/api/login", async (req, res) => {
         email: user.email,
         userType: user.user_type,
         dateOfBirth: user.date_of_birth,
+        bio: user.bio,
       },
     })
   } catch (err) {
@@ -239,7 +293,7 @@ app.get("/api/user/:id", async (req, res) => {
   try {
     const { id } = req.params
     const result = await pool.query(
-      "SELECT id, first_name, last_name, email, user_type, date_of_birth, created_at FROM users WHERE id = $1",
+      "SELECT id, first_name, last_name, email, user_type, date_of_birth, bio, custom_interests, created_at FROM users WHERE id = $1",
       [id],
     )
 
@@ -247,9 +301,49 @@ app.get("/api/user/:id", async (req, res) => {
       return res.status(404).json({ error: "User not found" })
     }
 
-    res.json(result.rows[0])
+    const user = result.rows[0]
+
+    user.bio = user.bio || ""
+    user.custom_interests = user.custom_interests || ""
+
+    // Get user interests
+    const interestsResult = await pool.query(
+      "SELECT i.id, i.name FROM interests i JOIN user_interests ui ON i.id = ui.interest_id WHERE ui.user_id = $1",
+      [id],
+    )
+
+    user.interests = interestsResult.rows
+
+    res.json(user)
   } catch (err) {
     console.error("Error fetching user:", err)
+    res.status(500).json({ error: "Server error" })
+  }
+})
+
+// Get user interests
+app.get("/api/user/:id/interests", async (req, res) => {
+  try {
+    const { id } = req.params
+
+    // Отримуємо інтереси з таблиці user_interests
+    const interestsResult = await pool.query(
+      "SELECT i.name FROM interests i JOIN user_interests ui ON i.id = ui.interest_id WHERE ui.user_id = $1 ORDER BY i.id",
+      [id],
+    )
+
+    // Отримуємо custom_interests з таблиці users
+    const userResult = await pool.query("SELECT custom_interests FROM users WHERE id = $1", [id])
+
+    const interests = interestsResult.rows.map((row) => row.name)
+    const custom_interests = userResult.rows[0]?.custom_interests || ""
+
+    res.json({
+      interests: interests,
+      custom_interests: custom_interests,
+    })
+  } catch (err) {
+    console.error("Error fetching user interests:", err)
     res.status(500).json({ error: "Server error" })
   }
 })
@@ -258,15 +352,27 @@ app.get("/api/user/:id", async (req, res) => {
 app.put("/api/user/:id", async (req, res) => {
   try {
     const { id } = req.params
-    const { firstName, lastName, dateOfBirth } = req.body
+    const { firstName, lastName, dateOfBirth, bio, interests, customInterests } = req.body
 
     const result = await pool.query(
-      "UPDATE users SET first_name = $1, last_name = $2, date_of_birth = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *",
-      [firstName, lastName, dateOfBirth, id],
+      "UPDATE users SET first_name = $1, last_name = $2, date_of_birth = $3, bio = $4, custom_interests = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *",
+      [firstName, lastName, dateOfBirth, bio || "", customInterests || "", id],
     )
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "User not found" })
+    }
+
+    if (interests !== undefined) {
+      await pool.query("DELETE FROM user_interests WHERE user_id = $1", [id])
+      if (interests.length > 0) {
+        for (const interestId of interests) {
+          await pool.query("INSERT INTO user_interests (user_id, interest_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", [
+            id,
+            interestId,
+          ])
+        }
+      }
     }
 
     res.json({
@@ -315,7 +421,7 @@ app.get("/api/moderator/user/:id", async (req, res) => {
   try {
     const { id } = req.params
     const result = await pool.query(
-      "SELECT id, first_name, last_name, email, user_type, date_of_birth, created_at FROM users WHERE id = $1",
+      "SELECT id, first_name, last_name, email, user_type, date_of_birth, bio, custom_interests, created_at FROM users WHERE id = $1",
       [id],
     )
 
@@ -323,7 +429,20 @@ app.get("/api/moderator/user/:id", async (req, res) => {
       return res.status(404).json({ error: "User not found" })
     }
 
-    res.json(result.rows[0])
+    const user = result.rows[0]
+
+    user.bio = user.bio || ""
+    user.custom_interests = user.custom_interests || ""
+
+    // Get user interests
+    const interestsResult = await pool.query(
+      "SELECT i.id, i.name FROM interests i JOIN user_interests ui ON i.id = ui.interest_id WHERE ui.user_id = $1",
+      [id],
+    )
+
+    user.interests = interestsResult.rows
+
+    res.json(user)
   } catch (err) {
     console.error("Error fetching user:", err)
     res.status(500).json({ error: "Server error" })
@@ -334,11 +453,38 @@ app.get("/api/moderator/user/:id", async (req, res) => {
 app.get("/api/moderator/users", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, first_name, last_name, email, user_type, date_of_birth, created_at FROM users ORDER BY created_at DESC",
+      "SELECT id, first_name, last_name, email, user_type, date_of_birth, custom_interests, created_at FROM users ORDER BY created_at DESC",
     )
-    res.json(result.rows)
+
+    // For each user, get their interests
+    const usersWithInterests = await Promise.all(
+      result.rows.map(async (user) => {
+        const interestsResult = await pool.query(
+          "SELECT i.name FROM interests i JOIN user_interests ui ON i.id = ui.interest_id WHERE ui.user_id = $1 ORDER BY i.id",
+          [user.id],
+        )
+
+        return {
+          ...user,
+          interests: interestsResult.rows.map((row) => row.name),
+        }
+      }),
+    )
+
+    res.json(usersWithInterests)
   } catch (err) {
     console.error("Error fetching all users:", err)
+    res.status(500).json({ error: "Server error" })
+  }
+})
+
+// Get all interests
+app.get("/api/interests", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT id, name FROM interests ORDER BY id")
+    res.json(result.rows)
+  } catch (err) {
+    console.error("Error fetching interests:", err)
     res.status(500).json({ error: "Server error" })
   }
 })
@@ -365,7 +511,8 @@ app.get("/api/games", (req, res) => {
   res.status(503).json({ error: "Games feature is under development" })
 })
 
-// Serve index.html for root
+// ============ SERVE STATIC PAGES ============
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "index.html"))
 })

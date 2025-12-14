@@ -2,6 +2,45 @@ const registerForm = document.getElementById("registerForm")
 const loginForm = document.getElementById("loginForm")
 const dateOfBirthInput = document.getElementById("dateOfBirth")
 const generationText = document.getElementById("generationText")
+const interestsGrid = document.getElementById("interestsGrid")
+
+async function loadInterests() {
+  try {
+    const response = await fetch("/api/interests")
+    const interests = await response.json()
+
+    if (interestsGrid) {
+      interestsGrid.innerHTML = interests
+        .map(
+          (interest) => `
+        <div class="interest-checkbox" data-interest-id="${interest.id}">
+          <input type="checkbox" id="interest-${interest.id}" value="${interest.id}">
+          <label for="interest-${interest.id}">${interest.name}</label>
+        </div>
+      `,
+        )
+        .join("")
+
+      // Add click handlers to toggle selected state
+      document.querySelectorAll(".interest-checkbox").forEach((box) => {
+        box.addEventListener("click", function (e) {
+          if (e.target.tagName !== "INPUT") {
+            const checkbox = this.querySelector('input[type="checkbox"]')
+            checkbox.checked = !checkbox.checked
+          }
+          this.classList.toggle("selected", this.querySelector('input[type="checkbox"]').checked)
+        })
+      })
+    }
+  } catch (error) {
+    console.error("Error loading interests:", error)
+  }
+}
+
+// Load interests when page loads
+if (interestsGrid) {
+  loadInterests()
+}
 
 function calculateGenerationFromDate(dateString) {
   if (!dateString) return { label: "невідомо", type: "unknown" }
@@ -30,11 +69,10 @@ dateOfBirthInput?.addEventListener("change", () => {
   const generation = calculateGenerationFromDate(dateOfBirthInput.value)
   if (generation.label !== "невідомо") {
     generationText.textContent = `Ваше покоління: ${generation.label}`
-    generationText.style.color = generation.type === "invalid" ? "#ef4444" : "#10b981"
+    generationText.style.color = generation.type === "invalid" ? "#ef4444" : "#C94D47"
   }
 })
 
-// Handle User Registration
 registerForm?.addEventListener("submit", async (e) => {
   e.preventDefault()
 
@@ -46,12 +84,21 @@ registerForm?.addEventListener("submit", async (e) => {
     return
   }
 
+  // Collect selected interests
+  const selectedInterests = Array.from(document.querySelectorAll(".interest-checkbox input:checked")).map((checkbox) =>
+    Number.parseInt(checkbox.value),
+  )
+
+  const customInterests = document.getElementById("customInterests").value.trim()
+
   const formData = {
     firstName: document.getElementById("firstName").value,
     lastName: document.getElementById("lastName").value,
     email: document.getElementById("registerEmail").value,
     password: document.getElementById("registerPassword").value,
     dateOfBirth: dateValue,
+    interests: selectedInterests,
+    customInterests: customInterests,
   }
 
   try {
@@ -116,7 +163,6 @@ loginForm?.addEventListener("submit", async (e) => {
     }
   }
 
-  // Regular user login
   const formData = {
     email: email,
     password: password,
@@ -158,7 +204,6 @@ loginForm?.addEventListener("submit", async (e) => {
   }
 })
 
-// Smooth scroll to auth sections
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener("click", function (e) {
     const target = document.querySelector(this.getAttribute("href"))

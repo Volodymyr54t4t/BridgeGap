@@ -12,9 +12,9 @@
     <div class="container">
         <header class="header">
             <div class="header-content">
-                <!-- Added logo image next to BridgeGap text -->
+                <!-- Fixed logo path to use images/logo.jpg -->
                 <div class="logo-container">
-                    <img src="/placeholder.svg?height=40&width=40" alt="BridgeGap Logo" class="logo-image">
+                    <img src="images/logo.jpg" alt="BridgeGap Logo" class="logo-image">
                     <h1 class="logo">BridgeGap</h1>
                 </div>
                 <nav class="nav-links">
@@ -27,7 +27,7 @@
         <main class="main-content">
             <section class="hero">
                 <h2 class="hero-title">Об'єднуємо покоління</h2>
-                <p class="hero-subtitle">Платформа для спілкування та взаємодії між молодіжю та старшим поколінням</p>
+                <p class="hero-subtitle">Платформа для спілкування та взаємодії між молоддю та старшими</p>
                 <div class="hero-buttons">
                     <a href="#register" class="btn-primary btn-large">Почати</a>
                     <a href="#login" class="btn-secondary btn-large">Увійти</a>
@@ -35,7 +35,6 @@
             </section>
 
             <section class="auth-container" id="auth">
-                <!-- unified login form for users and moderators (no moderator label) -->
                 <div class="auth-box" id="login">
                     <h3>Вхід</h3>
                     <form id="loginForm" class="auth-form">
@@ -52,7 +51,6 @@
                     </form>
                 </div>
 
-                <!-- removed generation selection radio buttons - now auto-calculated from date -->
                 <div class="auth-box" id="register">
                     <h3>Реєстрація</h3>
                     <form id="registerForm" class="auth-form">
@@ -70,12 +68,25 @@
                             <label for="registerEmail">Електронна адреса</label>
                             <input type="email" id="registerEmail" name="email" required>
                         </div>
-                        <!-- calendar date picker for date of birth -->
                         <div class="form-group">
                             <label for="dateOfBirth">Дата народження</label>
                             <input type="date" id="dateOfBirth" name="dateOfBirth" required>
                             <small id="generationText" class="generation-display"></small>
                         </div>
+                        
+                        <!-- Added interests selection section -->
+                        <div class="form-group interests-section">
+                            <label>Оберіть теми для обговорення в яких ви будете найбільш зацікавлені</label>
+                            <div class="interests-grid" id="interestsGrid">
+                                <!-- Interests will be loaded dynamically -->
+                            </div>
+                            <textarea 
+                                id="customInterests" 
+                                class="custom-interest-input" 
+                                placeholder="Плюс додамо поле для відкритої відповіді (напишіть свої додаткові інтереси тут)..."
+                            ></textarea>
+                        </div>
+
                         <div class="form-group">
                             <label for="registerPassword">Пароль</label>
                             <input type="password" id="registerPassword" name="password" required>

@@ -1,3 +1,12 @@
+const editBioField = document.getElementById("editBio")
+const bioCharCountSpan = document.getElementById("bioCharCount")
+
+function updateBioCharCount() {
+  if (editBioField && bioCharCountSpan) {
+    bioCharCountSpan.textContent = editBioField.value.length
+  }
+}
+
 function calculateGenerationFromDate(dateString) {
   if (!dateString) return "невідомо"
   const birthDate = new Date(dateString)
@@ -13,6 +22,16 @@ function calculateGenerationFromDate(dateString) {
   if (age < 13) return "Занадто молодо"
   if (age <= 60) return "Молоде покоління (13-60 років)"
   return "Старше покоління (60+ років)"
+}
+
+function formatDateForInput(dateString) {
+  if (!dateString) return ""
+  const date = new Date(dateString)
+  if (isNaN(date.getTime())) return ""
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
 }
 
 // Check if user is logged in
@@ -96,7 +115,7 @@ function updateProfileDisplay() {
 
   document.getElementById("editFirstName").value = firstName
   document.getElementById("editLastName").value = lastName
-  document.getElementById("editDateOfBirth").value = currentUser.dateOfBirth || ""
+  document.getElementById("editDateOfBirth").value = formatDateForInput(currentUser.dateOfBirth)
   document.getElementById("editBio").value = currentUser.bio || ""
   updateBioCharCount()
 
@@ -106,6 +125,8 @@ function updateProfileDisplay() {
     document.getElementById("profileAvatarImg").style.display = "block"
     document.querySelector(".profile-avatar").style.display = "none"
   }
+
+  loadUserInterests()
 }
 
 function calculateAge(birthDate) {
@@ -249,13 +270,138 @@ logoutBtn?.addEventListener("click", () => {
 showPage("home")
 initializeUserData()
 
-const editBioField = document.getElementById("editBio")
-const bioCharCountSpan = document.getElementById("bioCharCount")
+async function loadUserInterests() {
+  const interestsContainer = document.getElementById("profileInterests")
+  interestsContainer.innerHTML = '<p class="empty-state">Завантаження інтересів...</p>'
 
-function updateBioCharCount() {
-  if (editBioField && bioCharCountSpan) {
-    bioCharCountSpan.textContent = editBioField.value.length
+  try {
+    const response = await fetch(`/api/user/${currentUser.id}/interests`)
+
+    if (!response.ok) {
+      throw new Error("Помилка завантаження інтересів")
+    }
+
+    const data = await response.json()
+
+    if ((!data.interests || data.interests.length === 0) && (!data.custom_interests || !data.custom_interests.trim())) {
+      interestsContainer.innerHTML = '<p class="empty-state">Інтереси не обрані</p>'
+      return
+    }
+
+    let interestsHTML = ""
+
+    if (data.interests && data.interests.length > 0) {
+      interestsHTML += '<div class="interests-tags">'
+      data.interests.forEach((interest) => {
+        interestsHTML += `<span class="interest-tag">${interest}</span>`
+      })
+      interestsHTML += "</div>"
+    }
+
+    if (data.custom_interests && data.custom_interests.trim()) {
+      interestsHTML += `<div class="custom-interests"><strong>Інші інтереси:</strong> ${data.custom_interests}</div>`
+    }
+
+    interestsContainer.innerHTML = interestsHTML || '<p class="empty-state">Інтереси не обрані</p>'
+  } catch (error) {
+    console.error("Error loading interests:", error)
+    interestsContainer.innerHTML = '<p class="empty-state">Помилка завантаження інтересів</p>'
   }
 }
 
-editBioField?.addEventListener("input", updateBioCharCount)
+// Edit Interests
+const editInterestsBtn = document.getElementById("editInterestsBtn")
+const editInterestsForm = document.getElementById("editInterestsForm")
+const updateInterestsForm = document.getElementById("updateInterestsForm")
+const cancelEditInterestsBtn = document.getElementById("cancelEditInterestsBtn")
+const editInterestsGrid = document.getElementById("editInterestsGrid")
+
+editInterestsBtn?.addEventListener("click", async () => {
+  editInterestsForm.classList.remove("hidden")
+  await loadInterestsForEdit()
+})
+
+cancelEditInterestsBtn?.addEventListener("click", () => {
+  editInterestsForm.classList.add("hidden")
+})
+
+async function loadInterestsForEdit() {
+  try {
+    // Get all available interests
+    const allInterestsResponse = await fetch("/api/interests")
+    const allInterests = await allInterestsResponse.json()
+
+    // Get user's current interests
+    const userInterestsResponse = await fetch(`/api/user/${currentUser.id}/interests`)
+    const userData = await userInterestsResponse.json()
+    const userInterestNames = userData.interests || []
+    const customInterests = userData.custom_interests || ""
+
+    // Populate the grid
+    editInterestsGrid.innerHTML = allInterests
+      .map((interest) => {
+        const isChecked = userInterestNames.includes(interest.name)
+        return `
+        <div class="interest-checkbox ${isChecked ? "selected" : ""}" data-interest-id="${interest.id}">
+          <input type="checkbox" id="edit-interest-${interest.id}" value="${interest.id}" ${isChecked ? "checked" : ""}>
+          <label for="edit-interest-${interest.id}">${interest.name}</label>
+        </div>
+      `
+      })
+      .join("")
+
+    // Set custom interests
+    document.getElementById("editCustomInterests").value = customInterests
+
+    // Add click handlers
+    document.querySelectorAll("#editInterestsGrid .interest-checkbox").forEach((box) => {
+      box.addEventListener("click", function (e) {
+        if (e.target.tagName !== "INPUT") {
+          const checkbox = this.querySelector('input[type="checkbox"]')
+          checkbox.checked = !checkbox.checked
+        }
+        this.classList.toggle("selected", this.querySelector('input[type="checkbox"]').checked)
+      })
+    })
+  } catch (error) {
+    console.error("Error loading interests for edit:", error)
+    alert("Помилка при завантаженні інтересів")
+  }
+}
+
+updateInterestsForm?.addEventListener("submit", async (e) => {
+  e.preventDefault()
+
+  const selectedInterests = Array.from(
+    document.querySelectorAll("#editInterestsGrid .interest-checkbox input:checked"),
+  ).map((checkbox) => Number.parseInt(checkbox.value))
+
+  const customInterests = document.getElementById("editCustomInterests").value.trim()
+
+  try {
+    const response = await fetch(`/api/user/${currentUser.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        interests: selectedInterests,
+        customInterests: customInterests,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      alert("Помилка: " + data.error)
+      return
+    }
+
+    loadUserInterests()
+    editInterestsForm.classList.add("hidden")
+    alert("Інтереси оновлено успішно!")
+  } catch (error) {
+    console.error("Error updating interests:", error)
+    alert("Помилка при оновленні інтересів")
+  }
+})

@@ -21,9 +21,9 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <!-- Added logo image next to BridgeGap text -->
+                <!-- Updated logo to use actual logo.jpg file -->
                 <div class="logo-container">
-                    <img src="/placeholder.svg?height=32&width=32" alt="BridgeGap Logo" class="logo-image">
+                    <img src="images/logo.jpg" alt="BridgeGap Logo" class="logo-image">
                     <h2 class="logo-small">BridgeGap</h2>
                 </div>
                 <button class="menu-close" id="menuClose">✕</button>
@@ -65,28 +65,29 @@
             <!-- Home Page -->
             <section class="page" id="page-home" data-page="home">
                 <header class="page-header">
-                    <h1>Добро пожалувати до BridgeGap</h1>
+                    <h1>Вітаємо у BridgeGap</h1>
                     <p id="userGreeting"></p>
                 </header>
                 <div class="page-content">
                     <div class="welcome-card">
-                        <h2>Об'єднуємо покоління</h2>
-                        <p>BridgeGap - це платформа для спілкування та взаємодії між молодіжю та старшим поколінням.
-                            Разом ми создаємо місце, де різні покоління можуть ділитися досвідом, знаннями та дружбою.
+
+                        <p>BridgeGap - це платформа для спілкування між молоддю та старшим поколінням. Разом ми
+                            створюємо простір, де різні покоління можуть ділитися досвідом, знаннями та культурними
+                            традиціями.
                         </p>
                     </div>
                     <div class="features-grid">
                         <div class="feature-card">
-                            <h3>Чати</h3>
+                            <h3>Чати (в розробці)</h3>
                             <p>Спілкуйтеся з людьми з різних поколінь у приватних та групових чатах.</p>
                         </div>
                         <div class="feature-card">
                             <h3>Інтерактивні ігри (в розробці)</h3>
-                            <p>Грайте разом, навчайтесь нове і розважайтеся в компанії новых друзів.</p>
+                            <p>Грайте разом, навчайтеся новому та розважайтеся в компанії нових друзів.</p>
                         </div>
                         <div class="feature-card">
                             <h3>Спільноти (в розробці)</h3>
-                            <p>Присоединяйтесь до груп з спільними інтересами та обговорюйте теми, які вас хвилюють.</p>
+                            <p>Приєднуйтесь до груп за спільними інтересами та обговорюйте теми, які вас хвилюють.</p>
                         </div>
                     </div>
                 </div>
@@ -235,6 +236,37 @@
                             </div>
                         </div>
                         <button id="editProfileBtn" class="btn-primary">Редагувати профіль</button>
+                    </div>
+
+                    <!-- Added interests display section -->
+                    <div class="profile-interests-card">
+                        <h3>Мої інтереси</h3>
+                        <div id="profileInterests" class="interests-display">
+                            <p class="empty-state">Завантаження інтересів...</p>
+                        </div>
+                        <!-- Added button to edit interests -->
+                        <button id="editInterestsBtn" class="btn-secondary" style="margin-top: 1rem;">Редагувати
+                            інтереси</button>
+                    </div>
+
+                    <!-- Added interests editing form -->
+                    <div id="editInterestsForm" class="edit-form hidden">
+                        <h3>Редагування інтересів</h3>
+                        <form id="updateInterestsForm">
+                            <div class="form-group interests-section">
+                                <label>Оберіть ваші інтереси</label>
+                                <div class="interests-grid" id="editInterestsGrid">
+                                    <!-- Interests will be loaded dynamically -->
+                                </div>
+                                <textarea id="editCustomInterests" class="custom-interest-input"
+                                    placeholder="Додайте свої власні інтереси (необов'язково)..."></textarea>
+                            </div>
+                            <div class="button-group">
+                                <button type="submit" class="btn-primary">Зберегти інтереси</button>
+                                <button type="button" id="cancelEditInterestsBtn"
+                                    class="btn-secondary">Скасувати</button>
+                            </div>
+                        </form>
                     </div>
 
                     <div id="editProfileForm" class="edit-form hidden">
