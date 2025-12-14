@@ -114,7 +114,7 @@ body {
   gap: var(--spacing-md);
 }
 
-/* Updated logo size to be larger and more visible */
+/* Enhanced logo image styling with better visibility and error handling */
 .logo-image {
   width: 50px;
   height: 50px;
@@ -122,6 +122,17 @@ body {
   object-fit: contain;
   background-color: var(--color-bg-secondary);
   padding: 4px;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Added fallback styling if image fails to load */
+.logo-image[alt]::before {
+  content: attr(alt);
+  display: block;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
 }
 
 .logo {

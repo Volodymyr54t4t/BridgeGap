@@ -5,14 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BridgeGap - Об'єднання поколінь</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
     <div class="container">
         <header class="header">
             <div class="header-content">
-                <!-- Fixed logo path to use images/logo.jpg -->
                 <div class="logo-container">
                     <img src="images/logo.jpg" alt="BridgeGap Logo" class="logo-image">
                     <h1 class="logo">BridgeGap</h1>
@@ -27,7 +26,7 @@
         <main class="main-content">
             <section class="hero">
                 <h2 class="hero-title">Об'єднуємо покоління</h2>
-                <p class="hero-subtitle">Платформа для спілкування та взаємодії між молоддю та старшими</p>
+                <p class="hero-subtitle">Платформа для спілкування та взаємодії між молодіжю та старшим поколінням</p>
                 <div class="hero-buttons">
                     <a href="#register" class="btn-primary btn-large">Почати</a>
                     <a href="#login" class="btn-secondary btn-large">Увійти</a>
@@ -73,18 +72,15 @@
                             <input type="date" id="dateOfBirth" name="dateOfBirth" required>
                             <small id="generationText" class="generation-display"></small>
                         </div>
-                        
+
                         <!-- Added interests selection section -->
                         <div class="form-group interests-section">
                             <label>Оберіть теми для обговорення в яких ви будете найбільш зацікавлені</label>
                             <div class="interests-grid" id="interestsGrid">
                                 <!-- Interests will be loaded dynamically -->
                             </div>
-                            <textarea 
-                                id="customInterests" 
-                                class="custom-interest-input" 
-                                placeholder="Плюс додамо поле для відкритої відповіді (напишіть свої додаткові інтереси тут)..."
-                            ></textarea>
+                            <textarea id="customInterests" class="custom-interest-input"
+                                placeholder="Плюс додамо поле для відкритої відповіді (напишіть свої додаткові інтереси тут)..."></textarea>
                         </div>
 
                         <div class="form-group">
@@ -103,7 +99,7 @@
         </footer>
     </div>
 
-    <script src="/js/auth.js"></script>
+    <script src="js/auth.js"></script>
 </body>
 
 </html>
